@@ -4,7 +4,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 # ====== TOKEN ======
-TELEGRAM_TOKEN = "8243360646:AAFdPeTuBeIeGbK03EctyTrfCK0-wlYKxSI"
+TELEGRAM_TOKEN = "8230953173:AAHiCH_iJWZTxatCI3_Jba4kT90I6F1U--o"
 HF_TOKEN = "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"
 HF_API_URL = "https://api-inference.huggingface.co/models/ntt123/vietTTS_fpt"
 
