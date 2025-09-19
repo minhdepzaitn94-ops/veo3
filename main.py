@@ -1,12 +1,15 @@
-from telegram.ext import Application, CommandHandler
 import requests
+from telegram.ext import Application, CommandHandler
 
-TELEGRAM_TOKEN = "..."
-HF_TOKEN = "..."
+# Token của bạn
+TELEGRAM_TOKEN = "8243360646:AAFdPeTuBeIeGbK03EctyTrfCK0-wlYKxSI"
+HF_TOKEN = "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"
+
+# API HuggingFace mẫu
 HF_API_URL = "https://api-inference.huggingface.co/models/gpt2"
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
-def query_hf(prompt):
+def query_hf(prompt: str) -> str:
     payload = {"inputs": prompt}
     response = requests.post(HF_API_URL, headers=headers, json=payload)
     if response.status_code == 200:
