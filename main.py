@@ -1,47 +1,48 @@
-import os
 import requests
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Updater, CommandHandler
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-HF_TOKEN = os.getenv("HF_TOKEN")
-MODEL_ID = "ali-vilab/InstructVideo"
+# Token đã nhúng sẵn
+TELEGRAM_TOKEN = "8243360646:AAFdPeTuBeIeGbK03EctyTrfCK0-wlYKxSI"
+HF_TOKEN = "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"
+
+# API HuggingFace mẫu (bạn có thể đổi sang model khác)
+HF_API_URL = "https://api-inference.huggingface.co/models/gpt2"
 
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("👋 Gửi cho mình 1 ảnh, mình sẽ tạo video VEO3 từ ảnh đó!")
+def query_hf(prompt):
+    payload = {"inputs": prompt}
+    response = requests.post(HF_API_URL, headers=headers, json=payload)
+    if response.status_code == 200:
+        data = response.json()
+        try:
+            return data[0]["generated_text"]
+        except:
+            return str(data)
+    else:
+        return f"Lỗi HuggingFace: {response.status_code} - {response.text}"
 
-async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    file = await update.message.photo[-1].get_file()
-    img_path = "input.jpg"
-    await file.download_to_drive(img_path)
+def start(update, context):
+    update.message.reply_text("🤖 Bot đã hoạt động trên Render!\nDùng /ask <câu hỏi> để hỏi AI.")
 
-    await update.message.reply_text("⏳ Đang tạo video, vui lòng chờ...")
-
-    with open(img_path, "rb") as f:
-        response = requests.post(
-            f"https://api-inference.huggingface.co/models/{MODEL_ID}",
-            headers=headers,
-            data=f
-        )
-
-    if response.status_code != 200:
-        await update.message.reply_text("❌ Lỗi API HuggingFace, thử lại sau!")
+def ask(update, context):
+    if not context.args:
+        update.message.reply_text("Vui lòng nhập câu hỏi. Ví dụ: /ask Xin chào")
         return
-
-    out_path = "output.mp4"
-    with open(out_path, "wb") as f:
-        f.write(response.content)
-
-    await update.message.reply_video(video=open(out_path, "rb"))
+    prompt = " ".join(context.args)
+    update.message.reply_text("⏳ Đang gọi HuggingFace API...")
+    reply = query_hf(prompt)
+    update.message.reply_text(reply)
 
 def main():
-    app = Application.builder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.PHOTO, handle_image))
-    print("✅ Bot đang chạy trên Railway...")
-    app.run_polling()
+    updater = Updater(TELEGRAM_TOKEN, use_context=True)
+    dp = updater.dispatcher
+
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("ask", ask))
+
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == "__main__":
     main()
