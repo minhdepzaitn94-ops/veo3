@@ -5,7 +5,6 @@ from telegram.ext import Application, CommandHandler
 TELEGRAM_TOKEN = "8243360646:AAFdPeTuBeIeGbK03EctyTrfCK0-wlYKxSI"
 HF_TOKEN = "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"
 
-# API HuggingFace mẫu
 HF_API_URL = "https://api-inference.huggingface.co/models/gpt2"
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
@@ -13,20 +12,19 @@ def query_hf(prompt: str) -> str:
     payload = {"inputs": prompt}
     response = requests.post(HF_API_URL, headers=headers, json=payload)
     if response.status_code == 200:
-        data = response.json()
         try:
-            return data[0]["generated_text"]
-        except:
-            return str(data)
+            return response.json()[0]["generated_text"]
+        except Exception:
+            return str(response.json())
     else:
         return f"Lỗi HuggingFace: {response.status_code} - {response.text}"
 
 async def start(update, context):
-    await update.message.reply_text("🤖 Bot đã hoạt động trên Render!\nDùng /ask <câu hỏi> để hỏi AI.")
+    await update.message.reply_text("🤖 Bot chạy trên Render thành công!\nDùng /ask <câu hỏi> để hỏi AI.")
 
 async def ask(update, context):
     if not context.args:
-        await update.message.reply_text("Vui lòng nhập câu hỏi. Ví dụ: /ask Xin chào")
+        await update.message.reply_text("Bạn chưa nhập câu hỏi. Ví dụ: /ask Xin chào")
         return
     prompt = " ".join(context.args)
     await update.message.reply_text("⏳ Đang gọi HuggingFace API...")
